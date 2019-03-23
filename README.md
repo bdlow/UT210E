@@ -318,7 +318,7 @@ Finally, when this is done you'll have one remaining problem: a warning beep whe
 
 Any I2C setup can be used to read and write the EEPROM. Below is one arrangement using the [Bus Pirate](http://dangerousprototypes.com/docs/Bus_Pirate) and a cheap SOIC8 clip. The SOIC8 clip cable is terminated to an IDC connector, making for convenient connection to each of the IC's pins.
 
-Bus Pirate Connections (wire colour refers to the patch wires in the following image); ground/GND refers to Vss, not the meter's analogue ground:
+Bus Pirate Connections (wire colour refers to the jumper/patch wires in the following image); ground/GND refers to Vss, not the meter's analogue ground:
 
 | CZ1  | Bus Pirate (clip colour)         | Wire colour |
 | ---- | -------------------------------- | ----------- |
@@ -328,11 +328,13 @@ Bus Pirate Connections (wire colour refers to the patch wires in the following i
 | SDA  | P8 MOSI (yellow)                 | blue        |
 | Vss  | P1 GND (black)                   | black       |
 
-Note the pull-up connection, and the orange patch from one of spare grounded address pins on the EEPROM to WP. Also, an additional ground connection is required to reset the ASIC; this can be a jumper from another of the spare address pins.
+Note the pull-up connection, and the orange jumper from one of spare grounded address pins on the EEPROM to WP. Also, an additional ground connection ought to be used to reset the ASIC; this can be a jumper from another of the spare address pins. I found that I didn't need to hold the ASIC in reset if I waited a minute after applying power; sometimes it's ok to live a little dangerously (so long as you verify what you've read and written).
 
 ![BP overall setup](_resources/bp_overall_setup.png)
 ![BP closeup of connections](_resources/bp_closeup_of_connections.png)
 (not shown  in the above is the additional flying lead from a spare ground on the IDC connector, used to 'probe' the side of C5's leg closest to the ASIC so as to hold the ASIC in reset)
+
+Physical setup: remove the batteries, turn the meter's function dial to anywhere but 'off', remove the back case, attach the SOIC clip, patch it to the BP per the above.
 
 Set up the BP, check voltages (SCA, SCL should be High, if not check pullups are enabled), and dump the entire EEPROM (256 bytes):
 
