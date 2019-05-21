@@ -112,7 +112,7 @@ The CZ1 connections are directly to the EEPROMs power and data pins, and presumi
 
 (aside: the DM24C02A is CMOS, so Vcc should be labelled as V<sub>DD</sub>)
 
-Note that the testpoint marked GND on the board near C2 is analogue input ground / negative, not Vss / battery negative.
+Note that the testpoint marked GND on the board near C2 is analogue input ground, not Vss / battery negative.
 
 Reading/writing the EEPROM:
 - the ASIC should be held in reset: pin 55 to GND
