@@ -99,7 +99,6 @@ The EEPROM is a [DM24C02A](http://ww1.microchip.com/downloads/en/DeviceDoc/I2C%2
 
 ![UT210E board](_resources/ut210e_board.png)
 
-
 The CZ1 connections are directly to the EEPROMs power and data pins, and presuming CZ1's "pin 1" is the pin closest to the crystal (i.e. the photo above is upside-down), we have:
 
     1: Vcc (+3.3V)
@@ -320,15 +319,15 @@ Any I2C setup can be used to read and write the EEPROM. Below is one arrangement
 
 Bus Pirate Connections (wire colour refers to the jumper/patch wires in the following image); ground/GND refers to Vss, not the meter's analogue ground:
 
-| CZ1  | Bus Pirate (clip colour)         | Wire colour |
-| ---- | -------------------------------- | ----------- |
-| +3.3 | P2 3V3 (yellow) + P5 VPU (green) | red         |
-| WP   | n/c (gnd)                        | orange/pink |
-| SCL  | P7 CLK (green)                   | light blue  |
-| SDA  | P8 MOSI (yellow)                 | blue        |
-| Vss  | P1 GND (black)                   | black       |
+| IC   | Pin  | Bus Pirate (clip colour)         | Wire colour |
+| ---- | ---- | -------------------------------- | ----------- |
+| +3.3 | 8    | P2 3V3 (yellow) + P5 VPU (green) | red         |
+| WP   | 7    | n/c (gnd)                        | orange/pink |
+| SCL  | 6    | P7 CLK (green)                   | light blue  |
+| SDA  | 5    | P8 MOSI (yellow)                 | blue        |
+| Vss  | 4    | P1 GND (black)                   | black       |
 
-Note the pull-up connection, and the orange jumper from one of spare grounded address pins on the EEPROM to WP. Also, an additional ground connection ought to be used to reset the ASIC; this can be a jumper from another of the spare address pins. I found that I didn't need to hold the ASIC in reset if I waited a minute after applying power; sometimes it's ok to live a little dangerously (so long as you verify what you've read and written).
+Note the pull-up connection to 3V3, and the (orange/pink) jumper from the IC's WP to one of the spare grounded address pins (i.e. the IC's pin 7 is connected to any of pins 1, 2 or 3). Also, an additional ground connection ought to be used to reset the ASIC; this can be a jumper from another of the spare address pins. I found that I didn't need to hold the ASIC in reset if I waited a minute after applying power; sometimes it's ok to live a little dangerously (so long as you verify what you've read and written).
 
 ![BP overall setup](_resources/bp_overall_setup.png)
 ![BP closeup of connections](_resources/bp_closeup_of_connections.png)
