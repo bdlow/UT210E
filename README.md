@@ -95,6 +95,11 @@ The ASIC's configuration is stored on EEPROM and can be modified to:
 
 Device-specific calibration data is also stored in the EEPROM so need to be careful and only selectively modify its contents.
 
+There are a couple of editors available that provide a user-friendly way of viewing and changing the EEPROM configuration, including:
+
+* [adlerweb](https://github.com/adlerweb/UT210E-Calculator): <https://adlerweb.github.io/UT210E-Calculator/>
+* [devydd](https://github.com/devydd/UT210E-EEPROM-Editor): <https://devydd.github.io/UT210E-EEPROM-Editor/>
+
 The EEPROM is a [DM24C02A](http://ww1.microchip.com/downloads/en/DeviceDoc/I2C%20Serial%20EE%20Family%20Data%20Sheet%2021930C.pdf) 2kbit (256 byte) I2C SOIC8 device, with the necessary pins available on an unpopulated 2mm-pitch jumper/connector CZ1. A SOIC clip works fine, but may need the neighbouring caps nudged aside.
 
 ![UT210E board](_resources/ut210e_board.png)
@@ -125,20 +130,22 @@ Reading/writing the EEPROM:
 
 ### Configuration Data
 
-The ASIC is configured via various memory addresses in the EEPROM, documented in the chip's datasheet. Some are single-byte, others two-byte little-endian (i.e. least-significant byte in the lower address).
+The ASIC is configured via various memory addresses in the EEPROM, documented in the chip's datasheet. Some are single-byte, others two-byte [little-endian](https://en.wikipedia.org/wiki/Endianness#Overview). Little-endian means that the least-significant bits (LSB) are in the lower address followed by the most-significant bits (MSB) in the higher address); for example the value 0x1770 will be stored in the EEPROM as 0x70, 0x17. Aside: the `0x` convention means a base-16 number (hex), similarly a `b` suffix usually infers base-2 (binary).
 
-Aside: there's some misunderstanding and lack of clarity on the various information sources out there. Just because the datasheet implies something doesn't mean the UT210E hardware supports it. e.g. RS-232 output: the UT210E actually has this enabled in the ASIC's config but the hardware just isn't present ([ref](https://www.eevblog.com/forum/testgear/a-look-at-the-uni-t-ut210e/msg922407/#msg922407)). Despite that you'll see people simply writing a "magic value" 0xCE to the config address 0xFA, blowing away the other configuration bits at that address (the UT210E OEM value is 0xEF). The value 0xCE presumably chosen from an article on [a different meter that uses the same chipset](http://www.kerrywong.com/2016/03/19/hacking-dtm0660l-based-multimeters/). As always, take everything with a grain of salt.
+Aside: there's some misunderstanding and lack of clarity on the various information sources out there. Just because the datasheet implies something doesn't mean the UT210E hardware supports it. e.g. RS-232 output: the UT210E actually has this enabled in the ASIC's config but the hardware just isn't present ([ref](https://www.eevblog.com/forum/testgear/a-look-at-the-uni-t-ut210e/msg922407/#msg922407)). Despite that you'll see people simply writing a "magic value" 0xCE to the config address 0xFA, blowing away the other configuration bits at that address (the UT210E OEM value is 0xEF). The value 0xCE was presumably chosen from an article on [a different meter that uses the same chipset](http://www.kerrywong.com/2016/03/19/hacking-dtm0660l-based-multimeters/). As always, take everything with a grain of salt; YMMV.
 
 ### Interesting Addresses
 
 The following are some of the interesting addresses from the datasheet, and the OEM values for a DTM0660L device.
+
+16-bit (two-byte) values are little-endian, see above.
 
 |Address        |OEM Value      |Description    |
 |---            |---            |---            |
 |0x10-0x11      |0x1770         |full range (6000d = 0x1770; 8000d = 0x1F40)|
 |0x12-0x13      |0x0898         |range switch upper (0x0898 = 2200d; 0x1838 = 6200d)|
 |0x14-0x15      |0x00BE         |range switch lower (0x00BE = 190d; 0x0244 = 580d)|
-|0x1C |0x0A |current range warning current (0x0A = 10A)|
+|0x1C           |0x0A           |current range warning current (0x0A = 10A)|
 |               |               |               |
 |0x50-0x57      |               |current calibration data, 2-bytes/range|
 |               |               |               |
