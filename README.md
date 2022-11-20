@@ -4,7 +4,7 @@ Uni-T UT210E Clamp Meter
 
 ![UT210E Clamp Meter](_resources/ut210e_clamp_meter.png)
 
-This doc is the result of explorations into modding the Uni-T UT210E Clamp Meter; it's what I'd wish I'd had before wading through pages and pages of forum posts and datasheets, all in at least three languages. If you just want to know how to modify a UT210E using a Bus Pirate, skip to the [end](#readingwriting-the-eeprom-using-a-bus-pirate).
+This doc is the result of explorations into modding the Uni-T UT210E Clamp Meter; it's what I'd wish I'd had before wading through pages and pages of forum posts and datasheets across at least three languages. If you just want to know how to modify a UT210E using a Bus Pirate, skip to the [end](#readingwriting-the-eeprom-using-a-bus-pirate).
 
 <!-- TOC -->
 
