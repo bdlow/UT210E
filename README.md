@@ -100,7 +100,9 @@ There are a couple of editors available that provide a user-friendly way of view
 * [adlerweb](https://github.com/adlerweb/UT210E-Calculator): <https://adlerweb.github.io/UT210E-Calculator/>
 * [devydd](https://github.com/devydd/UT210E-EEPROM-Editor): <https://devydd.github.io/UT210E-EEPROM-Editor/>
 
-The EEPROM is a [DM24C02A](http://ww1.microchip.com/downloads/en/DeviceDoc/I2C%20Serial%20EE%20Family%20Data%20Sheet%2021930C.pdf) 2kbit (256 byte) I2C SOIC8 device, with the necessary pins available on an unpopulated 2mm-pitch jumper/connector CZ1. A SOIC clip works fine, but may need the neighbouring caps nudged aside.
+The EEPROM is an I2C SOIC8 2kbit (256 byte) device - the specific part can vary; presumably Uni-T use whatever is cheapest at the time of manufacture. The [DM24C02A](http://ww1.microchip.com/downloads/en/DeviceDoc/I2C%20Serial%20EE%20Family%20Data%20Sheet%2021930C.pdf) is common, though a T24C02A 1kB device has been seen in the wild (with the content above 0x100 empty).
+
+The EEPROM's pins are available on an unpopulated 2mm-pitch jumper/connector CZ1. A SOIC clip works fine - though may need the neighbouring caps nudged aside.
 
 ![UT210E board](_resources/ut210e_board.png)
 
