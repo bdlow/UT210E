@@ -84,7 +84,9 @@ The meter is built around a Digital Multimeter (DMM) ASIC, two variants have bee
 2. DM1106EN (newer units)
   * maximum count 9999
 
-The above ASICs are allegedly clones or rebranded versions of the HyconTek [HY12P66]([http://www.hycontek.com/wp-content/uploads/DS-HY12P65-EN.pdf).
+The above ASICs are allegedly clones or rebranded versions of the HyconTek [HY12P66]([http://www.hycontek.com/wp-content/uploads/DS-HY12P65-EN.pdf). At least some variants have no markings on the IC; presumably DM1106EN.
+
+The board is labelled "UT210E Rev.1", appears to have not changed across variants.
 
 The ASIC's configuration is stored on EEPROM and can be modified to:
 
@@ -106,7 +108,7 @@ The EEPROM's pins are available on an unpopulated 2mm-pitch jumper/connector CZ1
 
 ![UT210E board](_resources/ut210e_board.png)
 
-The CZ1 connections are directly to the EEPROMs power and data pins, and presuming CZ1's "pin 1" is the pin closest to the crystal (i.e. the photo above is upside-down), we have:
+The CZ1 connections are directly to the EEPROM's power and data pins, and presuming CZ1's "pin 1" is the pin closest to the crystal (i.e. the photo above is upside-down), we have:
 
     1: Vcc (+3.3V)
     2: WP
@@ -324,23 +326,25 @@ Finally, when this is done you'll have one remaining problem: a warning beep whe
 
 ## Reading/Writing the EEPROM Using a Bus Pirate
 
-Any I2C setup can be used to read and write the EEPROM. Below is one arrangement using the [Bus Pirate](http://dangerousprototypes.com/docs/Bus_Pirate) and a cheap SOIC8 clip. The SOIC8 clip cable is terminated to an IDC connector, making for convenient connection to each of the IC's pins.
+Any I2C setup can be used to read and write the EEPROM. Below is one arrangement using the [Bus Pirate](http://dangerousprototypes.com/docs/I2C) and a cheap SOIC8 clip. The SOIC8 clip cable is terminated to an IDC connector; inserting extra-long header pins into the IDC connector makes for a convenient connection to the BP clips.
 
-Bus Pirate Connections (wire colour refers to the jumper/patch wires in the following image); ground/GND refers to Vss, not the meter's analogue ground:
+The Bus Pirate doesn't allow "dumping" the EEPROM directly (i.e. writing out the EEPROM to a `.bin` file). Rather it allows you to modify the EEPROM piecemeal, one feature at a time. Having said that, it's possible to convert the BP dump to a binary file if you're keen, see `xxd` below.
 
-| IC   | Pin  | Bus Pirate (clip colour)         | Wire colour |
-| ---- | ---- | -------------------------------- | ----------- |
-| +3.3 | 8    | P2 3V3 (yellow) + P5 VPU (green) | red         |
-| WP   | 7    | n/c (gnd)                        | orange/pink |
-| SCL  | 6    | P7 CLK (green)                   | light blue  |
-| SDA  | 5    | P8 MOSI (yellow)                 | blue        |
-| Vss  | 4    | P1 GND (black)                   | black       |
+Bus Pirate Connections; ground/GND refers to Vss, not the meter's analogue ground:
 
-Note the pull-up connection to 3V3, and the (orange/pink) jumper from the IC's WP to one of the spare grounded address pins (i.e. the IC's pin 7 is connected to any of pins 1, 2 or 3). Also, an additional ground connection ought to be used to reset the ASIC; this can be a jumper from another of the spare address pins. I found that I didn't need to hold the ASIC in reset if I waited a minute after applying power; sometimes it's ok to live a little dangerously (so long as you verify what you've read and written).
+| IC   | Pin         | Bus Pirate (clip colour)         |
+| ---- | ----------- | -------------------------------- |
+| +3.3 | 8           | P2 3V3 (yellow) + P5 VPU (green) |
+| WP   | 7           | n/c (jumper to gnd, see below)   |
+| SCL  | 6           | P7 CLK (green)                   |
+| SDA  | 5           | P8 MOSI (yellow)                 |
+| Vss  | any of 1-4  | P1 GND (black)                   |
+
+Note the pull-up connection to 3V3, and the extra jumper from the IC's WP pin 7 to one of the spare grounded address pins (i.e. the IC's pin 7 is connected to any of pins 1-4). An additional ground connection ought to be used to reset the ASIC; this can be a jumper / flying lead from another of the spare address pins. It seems that the ASIC only periodically talks to the EEPROM; I found that I didn't need to hold the ASIC in reset if I made sure to verify what was read and written and re-tried anything that failed. Sometimes it's ok to live a little dangerously, no?
 
 ![BP overall setup](_resources/bp_overall_setup.png)
 ![BP closeup of connections](_resources/bp_closeup_of_connections.png)
-(not shown  in the above is the additional flying lead from a spare ground on the IDC connector, used to 'probe' the side of C5's leg closest to the ASIC so as to hold the ASIC in reset)
+(not shown in the above is the additional flying lead from a spare ground on the IDC connector that would be used to 'probe' the side of C5's leg closest to the ASIC so as to hold the ASIC in reset)
 
 Physical setup: remove the batteries, turn the meter's function dial to anywhere but 'off', remove the back case, attach the SOIC clip, patch it to the BP per the above.
 
@@ -398,31 +402,59 @@ I2C>
 
 ```
 
-You should dump the EEPROM multiple times to verify you're seeing consistent results, and be careful not to bump anything once you are. You may need to reset the ASIC, as above.
+You should dump the EEPROM multiple times to verify you're seeing consistent results, and be careful not to bump anything once you are.
+
+### Converting BP Dump to Binary File
+
+Feed the `READ:` line to `xxd`, as in the following:
+
+```
+$ echo 'READ: 0xFF  ACK 0xFF  ACK 0xFF  ACK 0xFF ...' | sed -E 's/(READ:|ACK) //g' | xxd -p -r > ut210.bin'
+```
 
 ### Configuration
 
-#### Modify the auto-off and backlight times
+The BP is mainly suited for modifying the EEPROM piecemeal, i.e. one feature at a time (rather than dumping the entire EEPROM, editing it elsewhere, and writing the entire thing back). It's safest to first read the current value at the target address and be sure it is as expected. Write the new value, and read it back. Repeat each step a few times if you want to be sure.
 
-To 30 minutes (0x1E) and 255 seconds (0xFF), respectively:
+If you're feeling brave you can use the BP to just write the EEPROM hex data from one of the online calculators, however I found the BP does not like attempting to write too much data at once. It does work if you break up the writes into 16 byte chunks, prefixing each chunk with the appropriate EEPROM address. e.g. (showing the BP commands only):
 
 ```
-I2C>[0xA0 0xFB [0xA1 r]
+[0xa0 0x00 0xff 0xff 0xff 0xff 0xff 0x00 0x80 0xe8 0x03 0xe8 0x03 0xfa 0x00 0x00 0xbe 0x03]
+[0xa0 0x10 0x0f 0x27 0x0f 0x27 0xd5 0x02 0x3d 0x3d 0x3c 0x3c 0xff 0xff 0xff 0xff 0x40 0xff]
+[0xa0 0x20 ...
+...
+[0xa0 0xe0 0x00 0x80 0x00 0x80 0x00 0x80 0x00 0x80 0x00 0x80 0x3b 0x02 0xcf 0x03 0x42 0x05]
+[0xa0 0xf0 0x3e 0x02 0xda 0x03 0x5e 0x05 0x00 0x80 0x5a 0xc7 0xef 0x1e 0xff 0x80 0x00 0x00]
+```
+
+Keep an eye out for NACKs, particularly if you're not holding the ASIC in reset; repeating any errored writes as often as required.
+
+It's clunky, but works ;-) There's probably a better way to drive the BP for this... PR's welcome.
+
+#### Modify the auto-off and backlight times
+
+For each of the auto-off and backlight time addresses (0xFB, 0xFC, respectively):
+read the current value (0xA1 r) then write new values - 30 minutes (0x1E) for
+auto-off and 255 seconds (0xFF) for backlight:
+
+```
+I2C>[0xA0 0xFB [0xA1 r]     # address 0xFB, read one byte
 I2C START BIT
 WRITE: 0xA0 ACK
 WRITE: 0xFB ACK
 I2C START BIT
 WRITE: 0xA1 ACK
-READ: 0x0F
+READ: 0x0F                  # result: current value = 0x0F, as expected
 NACK
 I2C STOP BIT
-I2C>[0xA0 0xFB 0x1E]
+I2C>[0xA0 0xFB 0x1E]        # address 0xFB, write the new value 0x1E
 ...
-I2C>[0xa0 0xfb [0xa1 r]
+I2C>[0xA0 0xFB [0xA1 r]     # address 0xFB, read one byte
 …
-READ: 0x1E
+READ: 0x1E                  # result: new value = 0x1E, yay it worked
 NACK
 I2C STOP BIT
+
 I2C>[0xA0 0xFC [0xA1 r]
 …
 READ: 0x0F
@@ -439,14 +471,9 @@ I2C STOP BIT
 
 #### Other Mods
 
+Matching read commands left as an exercise for the reader.
+
 ```
-# auto-off timeout: 30 mins
-[0xA0 0xFB 0x1E]
-
-# backlight auto-off: never
-[0xA0 0xFC 0x00]
-
-
 # swap AC/DC default for 2A, 20A, 100A, V modes
 [0xA0 0x87 0x16]
 [0xA0 0x97 0x17]
